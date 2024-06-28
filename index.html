@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML to CSV</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Extract FAL results</h1>
+  <textarea id="htmlInput" rows="20" cols="60" placeholder="Paste your HTML <table/> here"></textarea>
+  <br>
+  <button id="convertButton">Convert to CSV</button>
+  <br>
+  <a id="downloadLink" style="display:none;">Download CSV</a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <script>
+    document.getElementById('convertButton').addEventListener('click', function () {
+      const htmlInput = document.getElementById('htmlInput').value;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlInput, 'text/html');
+
+      const rows = doc.querySelectorAll('tbody tr');
+      const data = [];
+      rows.forEach(row => {
+        try {
+          const rank = row.querySelector('td:nth-child(1)').querySelector('span').textContent.trim();
+          const name = row.querySelector('td:nth-child(3)').textContent.trim();
+          data.push({ rank, name });
+        } catch {
+          return
+        }
+      });
+
+      const csv = Papa.unparse(data);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const downloadLink = document.getElementById('downloadLink');
+      downloadLink.href = url;
+      downloadLink.download = 'fal-results.csv';
+      downloadLink.style.display = 'block';
+      downloadLink.textContent = 'Download CSV';
+    });
+  </script>
+</body>
+
+</html>
